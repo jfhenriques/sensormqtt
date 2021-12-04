@@ -1,0 +1,12 @@
+
+""" Conts are defined here """
+
+DEFAULT_CONFIG_FILE = 'config.yml'
+
+MAX_WORKERS = 5
+FORCE_EXIT_MAX_COUNT = 5
+
+BUS_EVENT_STATE_UPD = 'S_UPD'
+BUS_EVENT_STATE_UPD_NOW = 'S_UPD_NOW'
+
+DEFAULT_UPDATE_RATE = 10

@@ -1,0 +1,94 @@
+
+# Uncomment sensors below to activate
+sensors:
+- system
+#- chia_wallet
+
+# Internal broker sensor
+#  Will aggregate and send all other sensor's readings to the mqtt broker
+broker:
+
+  address: '192.168.0.35'
+  port: 1883
+  ttl: 60
+
+  # Configures the update interval to the mqtt broker
+  #  Set as 0 to disable (all sensors will require their own mqtt_topic section defined)
+  default_publish_interval: 0
+
+  # Default mqtt topic for the internal broker sensor
+  #  Sensors that don't provide their own mqtt_topic, will have their readings aggregated and published at once
+  #  Required if default_publish_interval > 0
+  topic: 'ha/test/sensor/aggregated'
+
+
+# System sensor
+system:
+
+  # Polling rate to get the metrics
+  #   Defaults to 10 when omitted
+  polling_rate: 10
+
+  # System mqtt topic
+  #  Comment to use the aggregated broker publish
+  mqtt_topic: 'ha/test/sensor/system'
+
+  # Read basic metrics: cpu, memory, etc
+  #   Defaults to False when omitted
+  read_basic: True
+
+  # Uncomment to read CPU temperature and throttle status, if running in the raspbery pi
+  #   Defaults to False when omitted
+  #is_rpi: True
+
+  # List of network interfaces to collect network usage
+  #   Comment section to disable
+  net_ifaces:
+  - eth0
+
+  # List of directories to monitor the space used
+  #   Only works on linux
+  #   Comment section to disable
+  dir_list:
+  - /var/log
+
+  # Seconds interval for checking the space of dir_list
+  #   Checking the occupied space of a directory is CPU intensive,
+  #   it is recommended to use an higher interval that the sensor's polling_rate
+  #   Data is cached in normal reads, and only updated if dir_refresh_rate seconds have passed
+  #   Defaults to 600 seconds (10 minutes) when omitted
+  dir_refresh_rate: 600
+
+
+# Chia sensor
+chia_wallet:
+
+  # Polling rate to get the metrics
+  #   Defaults to 10 when omitted
+  polling_rate: 10
+
+  # System mqtt topic
+  #  Comment to use the aggregated broker publish
+  mqtt_topic: 'ha/test/sensor/chia'
+
+  # Chia Wallet Certificate
+  #   Chia wallet requires all RPC calls to be done with using the certificate and private key
+  #   User running the sensormqtt needs to have access to the certificate
+  certificate_file: '/home/user/.chia/mainnet/config/ssl/wallet/private_wallet.crt'
+
+  # Chia Wallet Private Key
+  #   Chia wallet requires all RPC calls to be done with using the certificate and private key
+  #   User running the sensormqtt needs to have access to the private key
+  certificate_key: '/home/user/.chia/mainnet/config/ssl/wallet/private_wallet.key'
+
+  # Host running the RPC Wallet
+  #   Default to localhost
+  host: 'localhost'
+
+  # Port of the the RPC Wallet
+  #   Default to 9256
+  port: 9256
+
+  # wallet id
+  #   Default to 1
+  chia_wallet_id: 1

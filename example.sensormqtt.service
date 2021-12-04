@@ -1,0 +1,14 @@
+[Unit]
+Description=sensormqtt
+After=network-online.target
+
+[Service]
+User=root
+ExecStart=/opt/sensormqtt/venv/bin/python3 sensormqtt.py -f config.yml
+WorkingDirectory=/opt/sensormqtt
+Restart=on-failure
+RestartSec=5
+
+
+[Install]
+WantedBy=multi-user.target
