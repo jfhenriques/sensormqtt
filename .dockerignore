@@ -1,0 +1,11 @@
+.git
+**/__pycache__
+.gitignore
+.dockerignore
+venv
+config.yml
+example.config.yml
+README.md
+example.sensormqtt.service
+Dockerfile
+

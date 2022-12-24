@@ -24,7 +24,7 @@ IO_COUNTER = {
 }
 
 
-def get_cpu_temp():
+def get_pi_cpu_temp():
    with open(RPI_TEMP_FILE, "r") as f:
       return round(int(f.readline()) / 1000, 1)
 
@@ -52,12 +52,12 @@ class SystemSensor(Entity):
       self.__net_ifaces: List[str] = net_ifaces
       self.__net_ifaces_last_check_time: float = None
       self.__net_ifaces_last: dict = {}
-      self.__is_read_net_ifaces: bool = net_ifaces.__len__() > 0
+      self.__is_read_net_ifaces: bool = len(net_ifaces) > 0
       
       self.__dir_list: List[str] = dir_list
       self.__dir_last_check_date: float = None
       self.__dir_cache_sizes: dict = {}
-      self.__is_read_dirs: bool = sys.platform != "win32" and dir_list.__len__() > 0
+      self.__is_read_dirs: bool = sys.platform != "win32" and len(dir_list) > 0
       self.__dir_refresh_rate: float = dir_refresh_rate
 
       self.__last_boot: str = None
@@ -87,13 +87,20 @@ class SystemSensor(Entity):
 
       reading['processor_use'] = round(psutil.cpu_percent(interval=None))
 
+      cpu_temp = None
+
       if sys.platform != "win32":
          reading['load_5'] = round(os.getloadavg()[1], 2)
          reading['load_15'] = round(os.getloadavg()[2], 2)
+         cpu_temp = self.__get_psutil_cpu_temp()
+         if cpu_temp is not None:
+             reading['cpu_temperature'] = cpu_temp
 
       if self.__is_rpi:
          reading['throttled'] = get_throttled()
-         reading['cpu_temperature'] = get_cpu_temp()
+
+         if cpu_temp is None:
+            reading['cpu_temperature'] = get_pi_cpu_temp()
 
       reading['memory_use_percent'] = psutil.virtual_memory().percent
       reading['swap_use_percent'] = psutil.swap_memory().percent
@@ -104,6 +111,16 @@ class SystemSensor(Entity):
 
       reading['last_boot'] = self.__last_boot
 
+
+   def __get_psutil_cpu_temp(self):
+
+      temps = psutil.sensors_temperatures()
+      if temps is not None and type(temps) is dict:
+         for x in ['cpu-thermal', 'cpu_thermal', 'coretemp']:
+           if x in temps:
+            return temps[x][0].current
+      
+      return None
 
    def __read_dir_sizes(self, reading: dict):
 
@@ -136,7 +153,7 @@ class SystemSensor(Entity):
 
             for io in ['tp_net_in', 'tp_net_out']:
 
-               state_key = '{}_{}'.format(i, io)
+               state_key = f'{i}_{io}'
                counter = counters[i][IO_COUNTER[io]]
                last_i_io = self.__net_ifaces_last[state_key] if state_key in self.__net_ifaces_last else None
                cur_state = 0.0
