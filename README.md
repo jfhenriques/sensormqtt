@@ -83,6 +83,13 @@ system:
   #   Defaults to False when omitted
   read_basic: True
 
+  # Read cpu temperature from file instead of psutil
+  #   Comment to use psutil, otherwise change with the appropriate file
+  #cpu_temp_file: /sys/class/hwmon/hwmon1/temp1_input
+
+  # Read cpu fan rpm from file
+  #cpu_rpm_file: /sys/class/hwmon/hwmon2/fan1_input
+
   # Uncomment to read CPU temperature and throttle status, if running in the raspbery pi
   #   Defaults to False when omitted
   #is_rpi: True
@@ -92,9 +99,16 @@ system:
   net_ifaces:
   - eth0
 
+  # List of disks to monitor with psutil
+  #   Comment section to disable
+  disk_list:
+  - /var/log
+
   # List of directories to monitor the space used
   #   Only works on linux
   #   Comment section to disable
+  #   This is different from disk list, which monitors disk global usage and this
+  #    monitors a specific folder usage
   dir_list:
   - /var/log
 
@@ -103,6 +117,7 @@ system:
   #   it is recommended to use an higher interval that the sensor's polling_rate
   #   Data is cached in normal reads, and only updated if dir_refresh_rate seconds have passed
   #   Defaults to 600 seconds (10 minutes) when omitted
+  #   Disk flag doesn't impact disk_sizes
   dir_refresh_rate: 600
 
 

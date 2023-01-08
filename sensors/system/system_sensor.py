@@ -23,9 +23,12 @@ IO_COUNTER = {
     "tp_net_in": 1,
 }
 
+def read_sys_rpm(file: str):
+   with open(file, "r") as f:
+      return int(f.readline())
 
-def get_pi_cpu_temp():
-   with open(RPI_TEMP_FILE, "r") as f:
+def read_sys_temp(file: str):
+   with open(file, "r") as f:
       return round(int(f.readline()) / 1000, 1)
 
 def get_throttled():
@@ -41,7 +44,10 @@ def get_dir_size(path):
 
 class SystemSensor(Entity):
 
-   def __init__(self, e_id: str, runner: EntityRunner, *, is_rpi: bool = False, include_basic: bool = True, net_ifaces: List[str] = [], dir_list: List[str] = [], dir_refresh_rate = 600, mqtt_topic: str = None):
+   def __init__(self, e_id: str, runner: EntityRunner, *, is_rpi: bool = False,
+                  include_basic: bool = True, net_ifaces: List[str] = [], dir_list: List[str] = [],
+                  dir_refresh_rate = 600, disk_list: List[str] = [], mqtt_topic: str = None,
+                  cpu_rpm_file: str = None, cpu_temp_file: str = None):
       super().__init__(e_id, "system", mqtt_topic)
 
       self.__runner: EntityRunner = runner
@@ -55,10 +61,14 @@ class SystemSensor(Entity):
       self.__is_read_net_ifaces: bool = len(net_ifaces) > 0
       
       self.__dir_list: List[str] = dir_list
+      self.__disk_list: List[str] = disk_list
       self.__dir_last_check_date: float = None
       self.__dir_cache_sizes: dict = {}
       self.__is_read_dirs: bool = sys.platform != "win32" and len(dir_list) > 0
       self.__dir_refresh_rate: float = dir_refresh_rate
+
+      self.__cpu_rpm_file: str = cpu_rpm_file
+      self.__cpu_temp_file: str = RPI_TEMP_FILE if is_rpi else cpu_temp_file
 
       self.__last_boot: str = None
 
@@ -80,7 +90,7 @@ class SystemSensor(Entity):
 
       if self.__is_read_net_ifaces:
          self.__read_net_ifaces(reading)
-
+      print(reading)
       return reading 
 
    def __read_basic(self, reading: dict):
@@ -90,35 +100,60 @@ class SystemSensor(Entity):
       cpu_temp = None
 
       if sys.platform != "win32":
-         reading['load_5'] = round(os.getloadavg()[1], 2)
-         reading['load_15'] = round(os.getloadavg()[2], 2)
-         cpu_temp = self.__get_psutil_cpu_temp()
+         lavg = os.getloadavg()
+         reading['load_1'] = round(lavg[0], 2)
+         reading['load_5'] = round(lavg[1], 2)
+         reading['load_15'] = round(lavg[2], 2)
+         cpu_temp = self.__get_cpu_temperature()
          if cpu_temp is not None:
              reading['cpu_temperature'] = cpu_temp
+         cpu_rpm = self.__get_cpu_rpm()
+         if cpu_rpm is not None:
+             reading['cpu_fan_rpm'] = cpu_rpm
 
       if self.__is_rpi:
          reading['throttled'] = get_throttled()
 
-         if cpu_temp is None:
-            reading['cpu_temperature'] = get_pi_cpu_temp()
-
-      reading['memory_use_percent'] = psutil.virtual_memory().percent
-      reading['swap_use_percent'] = psutil.swap_memory().percent
+      mem = psutil.virtual_memory()
+      reading['memory_total'] = mem.total
+      reading['memory_used'] = mem.used
+      reading['memory_use_percent'] = round(mem.percent, 1)
+      swap = psutil.swap_memory()
+      reading['swap_total'] = swap.total
+      reading['swap_used'] = swap.used
+      reading['swap_use_percent'] = round(swap.percent, 1)
       reading['disk_use_percent'] = psutil.disk_usage('/').percent
+
+      if len(self.__disk_list) > 0:
+         reading['disk_sizes'] = {}
+         for disk in self.__disk_list:
+            disk_dict: dict = {}
+            read_info = psutil.disk_usage(disk)
+            disk_dict['percent'] = read_info.percent
+            disk_dict['used'] = read_info.used
+            disk_dict['total'] = read_info.total
+            reading['disk_sizes'][disk] = disk_dict
 
       if self.__last_boot is None:
          self.__last_boot = utc_to_local(datetime.utcfromtimestamp(psutil.boot_time())).isoformat()
 
       reading['last_boot'] = self.__last_boot
 
+   def __get_cpu_rpm(self):
+      if self.__cpu_rpm_file is not None:
+         return read_sys_rpm(self.__cpu_rpm_file)
 
-   def __get_psutil_cpu_temp(self):
+   def __get_cpu_temperature(self):
 
-      temps = psutil.sensors_temperatures()
-      if temps is not None and type(temps) is dict:
-         for x in ['cpu-thermal', 'cpu_thermal', 'coretemp']:
-           if x in temps:
-            return temps[x][0].current
+      if self.__cpu_temp_file is not None:
+         return read_sys_temp(self.__cpu_temp_file)
+      
+      else:
+         temps = psutil.sensors_temperatures()
+         if temps is not None and type(temps) is dict:
+            for x in ['cpu-thermal', 'cpu_thermal', 'coretemp']:
+               if x in temps:
+                  return temps[x][0].current
       
       return None
 
