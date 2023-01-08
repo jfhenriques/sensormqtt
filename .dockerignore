@@ -4,6 +4,7 @@
 .dockerignore
 venv
 config.yml
+config.yaml
 example.config.yml
 README.md
 example.sensormqtt.service
