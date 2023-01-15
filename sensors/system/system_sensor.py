@@ -90,7 +90,7 @@ class SystemSensor(Entity):
 
       if self.__is_read_net_ifaces:
          self.__read_net_ifaces(reading)
-      print(reading)
+
       return reading 
 
    def __read_basic(self, reading: dict):
@@ -122,7 +122,7 @@ class SystemSensor(Entity):
       reading['swap_total'] = swap.total
       reading['swap_used'] = swap.used
       reading['swap_use_percent'] = round(swap.percent, 1)
-      reading['disk_use_percent'] = psutil.disk_usage('/').percent
+      #reading['disk_use_percent'] = psutil.disk_usage('/').percent
 
       if len(self.__disk_list) > 0:
          reading['disk_sizes'] = {}
