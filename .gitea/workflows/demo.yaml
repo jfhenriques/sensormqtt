@@ -7,7 +7,7 @@ on: [push]
 
 jobs:
 
-  demo-actions:
+  Explore-Gitea-Actions:
   
     runs-on: ubuntu-latest
     steps:
