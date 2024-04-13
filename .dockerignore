@@ -9,4 +9,5 @@ example.config.yml
 README.md
 example.sensormqtt.service
 Dockerfile
-
+docker-compose.yaml
+buildx.sh

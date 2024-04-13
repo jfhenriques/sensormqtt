@@ -1,0 +1,18 @@
+#
+#version: "3"
+
+services:
+  sensormqtt:
+    image: sensormqtt
+    container_name: sensormqtt
+    restart: always
+    network_mode: host
+    command:
+      - -f
+      - /app/config.yaml
+    environment:
+      TZ: Europe/Lisbon
+    volumes:
+      - ./config.yaml:/app/config.yaml:ro
+      - /mnt:/mnt:ro
+
