@@ -1,6 +1,6 @@
-paho-mqtt==1.6.1
-PyYAML==6.0.1
-tzdata==2021.5
-tzlocal==4.1
+paho-mqtt==2.1.0
+PyYAML==6.0.2
+tzdata==2024.2
+tzlocal==5.2
 # required for system
-psutil==5.8.0
+psutil==6.1.0

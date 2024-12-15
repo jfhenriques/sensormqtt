@@ -109,6 +109,9 @@ class MQTTClient(Entity):
             self.__mqtt_client.connection_error_flag = False
 
             self.__mqtt_client.on_connect = MQTTClient._broker_on_connect
+            if 'username' in config['broker'] and 'password' in config['broker']:
+                self.__mqtt_client.username_pw_set(username=config['broker']['username'], password=config['broker']['password'])
+
             self.__mqtt_client.connect(config['broker']['address'], config['broker']['port'], config['broker']['ttl'])
             self.__mqtt_client.loop_start()
 

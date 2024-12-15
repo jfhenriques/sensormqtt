@@ -21,6 +21,9 @@ broker:
   #  Required if default_publish_interval > 0
   topic: 'ha/test/sensor/aggregated'
 
+  # username: ''
+  # password: ''
+
 
 # System sensor
 system:

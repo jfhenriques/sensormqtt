@@ -67,6 +67,9 @@ broker:
   #  Required if default_publish_interval > 0
   topic: 'ha/test/sensor/aggregated'
 
+  # username: ''
+  # password: ''
+
 
 # System sensor
 system:
@@ -213,6 +216,5 @@ systemctl enable --now sensormqtt.service
 ```
 
 # Limitations
-- Mqtt user and password is not supported yet when connecting to the broker
 - No multiple instances of the same sensor (like configuring multiple template sensors in home assistant)
 - if default_publish_interval == 0 and sensors don't provide their own mqtt_topic, the readings will never be published
